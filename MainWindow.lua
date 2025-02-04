@@ -972,6 +972,10 @@ function Spy:ShowTooltip(show, id)
 				if playerData.class then details = details .. L[playerData.class] end
 				GameTooltip:AddLine(details .. L["Player"], detailsText.r, detailsText.g, detailsText.b)
 
+				if playerData.isPvpFlagged then 
+					GameTooltip:AddLine("<PVP>", detailsText.r, detailsText.g, detailsText.b)
+				end
+
 				if Spy.db.profile.DisplayWinLossStatistics then
 					local wins = "0"
 					local loses = "0"

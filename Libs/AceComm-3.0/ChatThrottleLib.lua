@@ -319,7 +319,7 @@ function ChatThrottleLib:Despool(Prio)
 		end
 		-- notify caller of delivery (even if we didn't send it)
 		if msg.callbackFn then
-			 --msg.callbackFn (msg.callbackArg, didSend) -- ERRORS HERE I THINK AS WELL AS 437 IDK WHY: FOR TURTLEWOW
+			msg.callbackFn (msg.callbackArg, didSend)
 		end
 		-- USER CALLBACK MAY ERROR
 	end
@@ -414,16 +414,17 @@ function ChatThrottleLib:SendChatMessage(prio, prefix,   text, chattype, languag
 		error('Usage: ChatThrottleLib:SendChatMessage("{BULK||NORMAL||ALERT}", "prefix", "text"[, "chattype"[, "language"[, "destination"]]]', 2)
 	end
 	if callbackFn and type(callbackFn)~="function" then
-		--error('ChatThrottleLib:ChatMessage(): callbackFn: expected function, got '..type(callbackFn), 2) --KEEPS ERRORING SO JUST COMMENTING OUT THE ERROR MSG FOR NOW
+		error('ChatThrottleLib:ChatMessage(): callbackFn: expected function, got '..type(callbackFn), 2)
 	end
 
 	local nSize = strlen(text)
 
-   -- Vanilla dont have limit?
+--[[   -- Vanilla dont have limit?
+
 	if nSize>255 then
 		error("ChatThrottleLib:SendChatMessage(): message length cannot exceed 255 bytes", 2)
 	end
-
+]]
 	nSize = nSize + self.MSG_OVERHEAD
 
 	-- Check if there's room in the global available bandwidth gauge to send directly
@@ -434,7 +435,7 @@ function ChatThrottleLib:SendChatMessage(prio, prefix,   text, chattype, languag
 		bMyTraffic = false
 		self.Prio[prio].nTotalSent = self.Prio[prio].nTotalSent + nSize
 		if callbackFn then
-			--callbackFn (callbackArg, true) --ERRORS HERE I THINK AS WELL AS 322 IDK WHY: FOR TURTLEWOW
+			callbackFn (callbackArg, true)
 		end
 		-- USER CALLBACK MAY ERROR
 		return
@@ -461,24 +462,24 @@ function ChatThrottleLib:SendAddonMessage(prio, prefix, text, chattype, target, 
 		error('Usage: ChatThrottleLib:SendAddonMessage("{BULK||NORMAL||ALERT}", "prefix", "text", "chattype"[, "target"])', 2)
 	end
 	if callbackFn and type(callbackFn)~="function" then
-		--error('ChatThrottleLib:SendAddonMessage(): callbackFn: expected function, got '..type(callbackFn), 2) --KEEPS ERRORING SO JUST COMMENTING OUT THE ERROR MSG FOR NOW
+		error('ChatThrottleLib:SendAddonMessage(): callbackFn: expected function, got '..type(callbackFn), 2)
 	end
 
 	local nSize = strlen(text);
 
 	if RegisterAddonMessagePrefix then
-		-- Vanilla dont have limit?
+		--[[   -- Vanilla dont have limit?
 		if nSize>255 then
 			error("ChatThrottleLib:SendAddonMessage(): message length cannot exceed 255 bytes", 2)
 		end
-		
+		]]
 	else
 		nSize = nSize + strlen(prefix) + 1
-		-- Vanilla dont have limit?
+		--[[   -- Vanilla dont have limit?
 		if nSize>255 then
 			error("ChatThrottleLib:SendAddonMessage(): prefix + message length cannot exceed 254 bytes", 2)
 		end
-		
+		]]
 	end
 
 	nSize = nSize + self.MSG_OVERHEAD;
@@ -491,7 +492,7 @@ function ChatThrottleLib:SendAddonMessage(prio, prefix, text, chattype, target, 
 		bMyTraffic = false
 		self.Prio[prio].nTotalSent = self.Prio[prio].nTotalSent + nSize
 		if callbackFn then
-			--callbackFn (callbackArg, true)
+			callbackFn (callbackArg, true)
 		end
 		-- USER CALLBACK MAY ERROR
 		return
