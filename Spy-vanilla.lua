@@ -2072,8 +2072,9 @@ function Spy:PlayerTargetEvent()
 					level = UnitLevel("player") + 10
 				end
 			end
+			local isPvpFlagged = Spy:SetPvpFlag("player", "target")
 
-			Spy:UpdatePlayerData(name, class, level, race, guild, true, guess)
+			Spy:UpdatePlayerData(name, class, level, race, guild, true, guess, isPvpFlagged)
 			if Spy.EnabledInZone then
 				Spy:AddDetected(name, time(), learnt)
 			end
@@ -2117,8 +2118,9 @@ function Spy:PlayerMouseoverEvent()
 					level = UnitLevel("player") + 10
 				end
 			end
+			local isPvpFlagged = 
 
-			Spy:UpdatePlayerData(name, class, level, race, guild, true, guess)
+			Spy:UpdatePlayerData(name, class, level, race, guild, true, guess, isPvpFlagged)
 			if Spy.EnabledInZone then
 				Spy:AddDetected(name, time(), learnt)
 			end

@@ -2057,7 +2057,6 @@ function Spy:PlayerTargetEvent()
 			local race, _ = UnitRace("target")
 			local level = tonumber(UnitLevel("target"))
 			local guild = GetGuildInfo("target")
-			local isPvpFlagged = UnitCanAttack("player", "target");
 			local guess = false
 			if level == Spy.Skull then
 				if playerData and playerData.level then
@@ -2073,6 +2072,7 @@ function Spy:PlayerTargetEvent()
 					level = UnitLevel("player") + 10
 				end
 			end
+			local isPvpFlagged = Spy:SetPvpFlag("player", "target");
 
 			Spy:UpdatePlayerData(name, class, level, race, guild, true, guess, isPvpFlagged)
 			if Spy.EnabledInZone then
@@ -2103,7 +2103,6 @@ function Spy:PlayerMouseoverEvent()
 			local race, _ = UnitRace("mouseover")
 			local level = tonumber(UnitLevel("mouseover"))
 			local guild = GetGuildInfo("mouseover")
-			local isPvpFlagged = UnitCanAttack("player", "mouseover")
 			local guess = false
 			if level == Spy.Skull then
 				if playerData and playerData.level then
@@ -2119,6 +2118,7 @@ function Spy:PlayerMouseoverEvent()
 					level = UnitLevel("player") + 10
 				end
 			end
+			local isPvpFlagged = Spy:SetPvpFlag("player", "mouseover")
 
 			Spy:UpdatePlayerData(name, class, level, race, guild, true, guess, isPvpFlagged)
 			if Spy.EnabledInZone then
@@ -2135,6 +2135,16 @@ function Spy:PlayerMouseoverEvent()
 		Spy:RemovePlayerFromList(name)
 		Spy:RemovePlayerData(name)
 	end
+end
+
+function Spy:SetPvpFlag(attacker, attacked)
+	local isPvpFlagged = false
+
+	if UnitCanAttack(attacker, attacked) == 1 then
+		isPvpFlagged = true
+	end
+
+	return isPvpFlagged
 end
 
 local playerName = UnitName("player")

@@ -48,7 +48,7 @@ function Spy:RefreshCurrentList(player, source)
 				if L[class] and type(L[class]) == "string" then 
 					description = description .. L[class] 
 				end
-				if playerData.isPvpFlagged then 
+				if playerData and playerData.isPvpFlagged then 
 					description = "<PVP>   " .. description
 				end
 			elseif  Spy.db.profile.DisplayListData == "NameLevelGuild" then
@@ -293,7 +293,7 @@ function Spy:AddPlayerData(name, class, level, race, guild, isEnemy, isGuess, is
 	info.guild = guild
 	info.isEnemy = isEnemy
 	info.isGuess = isGuess
-	info.isPvpFlagged = isPvpFlagged
+	info.isPvpFlagged = Spy:TryGetPvpFlag(name)
 	SpyPerCharDB.PlayerData[name] = info
 	return SpyPerCharDB.PlayerData[name]
 end
@@ -936,7 +936,8 @@ function Spy:ParseMinimapTooltip(tooltip)
 					newTooltip = newTooltip .. "\r" .. text .. "|r" .. desc
 				end
 				if not SpyPerCharDB.IgnoreData[name] and not Spy.InInstance then
-					local detected = Spy:UpdatePlayerData(name, nil, nil, nil, nil, true, nil, nil)
+					local isPvpFlagged = Spy:TryGetPvpFlag(name)
+					local detected = Spy:UpdatePlayerData(name, nil, nil, nil, nil, true, nil, isPvpFlagged)
 					if detected and Spy.db.profile.MinimapDetection then
 						Spy:AddDetected(name, time(), false)
 					end
@@ -967,7 +968,7 @@ function Spy:ParseUnitAbility(analyseSpell, event, player, spellName) --player, 
 		local race = nil
 		local isEnemy = true
 		local isGuess = true
-		local isPvpFlagged = false
+		local isPvpFlagged = TryGetPvpFlag(player)
 
 		local playerData = SpyPerCharDB.PlayerData[player]
 		if not playerData or playerData.isEnemy == nil then
@@ -1014,7 +1015,7 @@ end
 function Spy:ParseUnitDetails(player, class, level, race, zone, subZone, mapX, mapY, guild)
 	if player then
 		local playerData = SpyPerCharDB.PlayerData[player]
-		local isPvpFlagged = false
+		local isPvpFlagged = TryGetPvpFlag(player)
 		if not playerData then
 			playerData = Spy:AddPlayerData(player, class, level, race, guild, true, true, isPvpFlagged)
 		else
@@ -1150,6 +1151,36 @@ function Spy:AppendUnitKoS()
 		end
 	end
 	Spy.db.profile.AppendUnitKoSCheck = true --sets profile so it only runs once
+end
+
+function Spy:TryGetPvpFlag(name)
+	local hadOldTarget, oldTargetName = GetCurrentTargetInfo()
+
+	TargetByName(name, true)
+
+	local hasNewTarget, newTargetName = GetCurrentTargetInfo()
+
+	local isPvpFlagged = false
+	if hasNewTarget then
+		isPvpFlagged = Spy:SetPvpFlag("player", "target")
+	end
+
+	if (hadOldTarget and hasNewTarget and oldTargetName ~= newTargetName) then
+		TargetLastTarget()
+	end
+
+	if not hadOldTarget then
+		ClearTarget()
+	end
+	
+	return isPvpFlagged
+end
+
+local function GetCurrentTargetInfo()
+	local currentTargetName = GetUnitName("target")
+	local hasTarget = currentTargetName ~= nil
+
+	return hasTarget, currentTargetName
 end
 
 Spy.ListTypes = {
