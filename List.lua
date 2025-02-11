@@ -293,7 +293,7 @@ function Spy:AddPlayerData(name, class, level, race, guild, isEnemy, isGuess, is
 	info.guild = guild
 	info.isEnemy = isEnemy
 	info.isGuess = isGuess
-	info.isPvpFlagged = Spy:TryGetPvpFlag(name)
+	info.isPvpFlagged = isPvpFlagged
 	SpyPerCharDB.PlayerData[name] = info
 	return SpyPerCharDB.PlayerData[name]
 end
@@ -510,7 +510,7 @@ function Spy:AlertPlayer(player, source)
 			if playerData and Spy.db.profile.WarnOnRace and playerData.race == Spy.db.profile.SelectWarnRace then --++
 				PlaySoundFile("Interface\\AddOns\\Spy\\Sounds\\detected-race.wav") 
 			elseif playerData and playerData.isPvpFlagged then 
-				PlaySoundFile("Interface\\AddOns\\Spy\\Sounds\\sonar.wav")
+				PlaySoundFile("Interface\\AddOns\\Spy\\Sounds\\detected-nearby-pvp-enabled.wav")
 			else
 				PlaySoundFile("Interface\\AddOns\\Spy\\Sounds\\detected-nearby.wav")
 			end
@@ -1015,7 +1015,7 @@ end
 function Spy:ParseUnitDetails(player, class, level, race, zone, subZone, mapX, mapY, guild)
 	if player then
 		local playerData = SpyPerCharDB.PlayerData[player]
-		local isPvpFlagged = TryGetPvpFlag(player)
+		local isPvpFlagged = Spy:TryGetPvpFlag(player)
 		if not playerData then
 			playerData = Spy:AddPlayerData(player, class, level, race, guild, true, true, isPvpFlagged)
 		else
@@ -1033,9 +1033,6 @@ function Spy:ParseUnitDetails(player, class, level, race, zone, subZone, mapX, m
 			end
 			if not playerData.race then playerData.race = race end
 			if not playerData.guild then playerData.guild = guild end
-			-- if not playerData.isPvpFlagged and playerData.name ~= nil then
-			-- 	isPvpFlagged = UnitCanAttack("player", playerData.name)
-			-- end
 		end
 		playerData.isEnemy = true
 		playerData.time = time()
