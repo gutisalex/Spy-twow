@@ -968,7 +968,7 @@ function Spy:ParseUnitAbility(analyseSpell, event, player, spellName) --player, 
 		local race = nil
 		local isEnemy = true
 		local isGuess = true
-		local isPvpFlagged = TryGetPvpFlag(player)
+		local isPvpFlagged = Spy:TryGetPvpFlag(player)
 
 		local playerData = SpyPerCharDB.PlayerData[player]
 		if not playerData or playerData.isEnemy == nil then
@@ -1151,11 +1151,11 @@ function Spy:AppendUnitKoS()
 end
 
 function Spy:TryGetPvpFlag(name)
-	local hadOldTarget, oldTargetName = GetCurrentTargetInfo()
+	local hadOldTarget, oldTargetName = Spy:TryGetCurrentTargetInfo()
 
 	TargetByName(name, true)
 
-	local hasNewTarget, newTargetName = GetCurrentTargetInfo()
+	local hasNewTarget, newTargetName = Spy:TryGetCurrentTargetInfo()
 
 	local isPvpFlagged = false
 	if hasNewTarget then
@@ -1173,7 +1173,7 @@ function Spy:TryGetPvpFlag(name)
 	return isPvpFlagged
 end
 
-local function GetCurrentTargetInfo()
+function Spy:TryGetCurrentTargetInfo()
 	local currentTargetName = GetUnitName("target")
 	local hasTarget = currentTargetName ~= nil
 

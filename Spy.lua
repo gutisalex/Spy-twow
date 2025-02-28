@@ -2036,20 +2036,25 @@ function Spy:GetCensusData()
 end
 
 local function scanName(name)
+	local isEnemyUnit = false
 	if UnitName("target") == nil then
 		Spy.scanningPlayers = true
 		TargetByName(name, true)
-		Spy:PlayerTargetEvent()
+		isEnemyUnit = Spy:PlayerTargetEvent()
 		ClearTarget()
 		Spy.scanningPlayers = nil
 	end
+
+	return isEnemyUnit
 end
 
 function Spy:PlayerTargetEvent()
 	local name = GetUnitName("target", true)
-	if name and UnitIsPlayer("target") and not SpyPerCharDB.IgnoreData[name] then
+	local unitIsEnemy, unitIsPlayer = Spy:IsEnemyPlayer("target")
+	local isEnemyPlayer = unitIsPlayer and unitIsEnemy
+	if name and unitIsPlayer and not SpyPerCharDB.IgnoreData[name] then
 		local playerData = SpyPerCharDB.PlayerData[name]
-		if UnitIsEnemy("player", "target") then
+		if unitIsEnemy then
 			local learnt = true
 			if playerData and playerData.isGuess == false then learnt = false end
 
@@ -2089,13 +2094,17 @@ function Spy:PlayerTargetEvent()
 		Spy:RemovePlayerFromList(name)
 		Spy:RemovePlayerData(name)
 	end
+
+	return isEnemyPlayer
 end
 
 function Spy:PlayerMouseoverEvent()
 	local name = GetUnitName("mouseover", true)
-	if name and UnitIsPlayer("mouseover") and not SpyPerCharDB.IgnoreData[name] then
+	local unitIsEnemy, unitIsPlayer = Spy:IsEnemyPlayer("mouseover")
+	local isEnemyPlayer = unitIsPlayer and unitIsEnemy
+	if name and unitIsPlayer and not SpyPerCharDB.IgnoreData[name] then
 		local playerData = SpyPerCharDB.PlayerData[name]
-		if UnitIsEnemy("player", "mouseover") then
+		if unitIsEnemy then
 			local learnt = true
 			if playerData and playerData.isGuess == false then learnt = false end
 
@@ -2135,6 +2144,8 @@ function Spy:PlayerMouseoverEvent()
 		Spy:RemovePlayerFromList(name)
 		Spy:RemovePlayerData(name)
 	end
+
+	return isEnemyPlayer
 end
 
 function Spy:SetPvpFlag(attacker, attacked)
@@ -2145,6 +2156,20 @@ function Spy:SetPvpFlag(attacker, attacked)
 	end
 
 	return isPvpFlagged
+end
+
+function Spy:IsEnemyPlayer(attacked)
+	local unitIsEnemy = false
+	if UnitIsEnemy("player", attacked) == 1 then
+		unitIsEnemy = true
+	end
+
+	local unitIsPlayer = false
+	if UnitIsPlayer(attacked) == 1 then
+		unitIsPlayer = true
+	end
+
+	return unitIsEnemy, unitIsPlayer
 end
 
 local playerName = UnitName("player")
@@ -2160,8 +2185,10 @@ function Spy:CombatLogEvent(event, info) --_, timestamp, event, srcGUID, srcName
 	if Spy.EnabledInZone then
 		if event == "CHAT_MSG_SPELL_AURA_GONE_OTHER" then
 			if (info.skill == BS["Stealth"] or info.skill == BS["Prowl"]) and not Spy:PlayerIsFriend(victim) then
-				scanName(victim)
-				Spy:AlertStealthPlayer(victim)
+				local isEnemyUnit = scanName(victim)
+				if isEnemyUnit then
+					Spy:AlertStealthPlayer(victim)
+				end
 			end
 			return
 		end
@@ -2172,18 +2199,18 @@ function Spy:CombatLogEvent(event, info) --_, timestamp, event, srcGUID, srcName
 
 			local learnt = false
 			local detected = true
+			local isEnemyUnit = false
 			local playerData = SpyPerCharDB.PlayerData[source]
 			if not playerData or playerData.isGuess then
 				learnt, playerData = Spy:ParseUnitAbility(true, info.type, source, info.skill)
 			end
 			if not learnt then
-				scanName(source)
+				isEnemyUnit = scanName(source)
 				detected = Spy:UpdatePlayerData(source, nil, nil, nil, nil, true, nil, nil)
 			end
 
-			if detected then
+			if detected and isEnemyUnit then
 				Spy:AddDetected(source, time(), learnt)
-
 			end
 
 			if victim == playerName then
@@ -2197,16 +2224,17 @@ function Spy:CombatLogEvent(event, info) --_, timestamp, event, srcGUID, srcName
 			not find(victim, " ") and not find(victim, "Unknown") then
 			local learnt = false
 			local detected = true
+			local isEnemyPlayer = false
 			local playerData = SpyPerCharDB.PlayerData[victim]
 			if not playerData or playerData.isGuess then
 				learnt, playerData = Spy:ParseUnitAbility(not source, info.type, victim, info.skill)
 			end
 			if not learnt then
-				scanName(victim)
+				isEnemyPlayer = scanName(victim)
 				detected = Spy:UpdatePlayerData(victim, nil, nil, nil, nil, true, nil, nil)
 			end
 
-			if detected then
+			if detected and isEnemyPlayer then
 				Spy:AddDetected(victim, time(), learnt)
 			end
 		end
