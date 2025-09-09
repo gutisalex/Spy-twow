@@ -93,6 +93,10 @@ function AceComm:SendCommMessage(prefix, text, distribution, target, prio, callb
 	-- Ace3v: substract the prefix length
 	local maxtextlen = 254 - strlen(prefix)
 	local queueName = prefix..distribution..(target or "")
+	-- Debug: Check if queueName is valid
+	if not queueName or queueName == "" then
+		queueName = prefix..distribution.."default"
+	end
 
 	local ctlCallback = nil
 	if callbackFn then
@@ -113,6 +117,13 @@ function AceComm:SendCommMessage(prefix, text, distribution, target, prio, callb
 
 	if not forceMultipart and textlen <= maxtextlen then
 		-- fits all in one message
+		-- Debug: Only print if there's an issue with parameters
+		if not ctlCallback and type(ctlCallback) ~= "nil" then
+			print("DEBUG: ctlCallback issue - type:", type(ctlCallback), "value:", ctlCallback)
+		end
+		if type(textlen) ~= "number" then
+			print("DEBUG: textlen issue - type:", type(textlen), "value:", textlen)
+		end
 		CTL:SendAddonMessage(prio, prefix, text, distribution, target, queueName or "", ctlCallback, textlen)
 	else
 		maxtextlen = maxtextlen - 1	-- 1 extra byte for part indicator in prefix(4.0)/start of message(4.1)

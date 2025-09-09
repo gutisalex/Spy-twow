@@ -414,7 +414,7 @@ function ChatThrottleLib:SendChatMessage(prio, prefix,   text, chattype, languag
 		error('Usage: ChatThrottleLib:SendChatMessage("{BULK||NORMAL||ALERT}", "prefix", "text"[, "chattype"[, "language"[, "destination"]]]', 2)
 	end
 	if callbackFn and type(callbackFn)~="function" then
-		error('ChatThrottleLib:ChatMessage(): callbackFn: expected function, got '..type(callbackFn), 2)
+		error('ChatThrottleLib:SendChatMessage(): callbackFn: expected function, got '..type(callbackFn), 2)
 	end
 
 	local nSize = strlen(text)
