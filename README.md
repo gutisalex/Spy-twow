@@ -1,5 +1,15 @@
- # <b>stopped playing so stopped developing srry prob still works</b>
-# Spy-vanilla for TurtleWoW
-Spy ported to vanilla WOW Spy-vanilla from: https://github.com/laytya/Spy-vanilla
+# Spy
 
-Original keeps erroring in AceComm-3.0 library file: ChatThrottleLib.lua so I commented out the errors. Works now on TurtleWoW but I don't know how to fix the underlying issue.
+**Spy** is a World of Warcraft addon that detects and alerts you to the presence of nearby enemy players.
+
+## What it does
+
+- **Enemy Detection**: Automatically detects enemy players in your vicinity
+- **Audio & Visual Alerts**: Plays sounds and shows notifications when enemies are spotted
+- **Player Lists**: Maintains lists of players including KOS (Kill on Sight) targets
+- **Statistics**: Tracks encounters and player statistics over time
+- **Stealth Detection**: Alerts when stealthed enemies are detected nearby
+- **Guild Tracking**: Identifies enemy guild members
+- **Customizable Interface**: Configurable windows, alerts, and notification settings
+
+This version is ported for vanilla WoW and TurtleWoW.

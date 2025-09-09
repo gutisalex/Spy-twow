@@ -419,12 +419,12 @@ function ChatThrottleLib:SendChatMessage(prio, prefix,   text, chattype, languag
 
 	local nSize = strlen(text)
 
---[[   -- Vanilla dont have limit?
-
-	if nSize>255 then
+	-- Check if we're running on a modern WoW client that has message length limits
+	-- Vanilla WoW (1.12) and TurtleWoW don't have the 255-byte restriction
+	local isModernWoW = RegisterAddonMessagePrefix ~= nil
+	if isModernWoW and nSize > 255 then
 		error("ChatThrottleLib:SendChatMessage(): message length cannot exceed 255 bytes", 2)
 	end
-]]
 	nSize = nSize + self.MSG_OVERHEAD
 
 	-- Check if there's room in the global available bandwidth gauge to send directly
@@ -468,18 +468,18 @@ function ChatThrottleLib:SendAddonMessage(prio, prefix, text, chattype, target, 
 	local nSize = strlen(text);
 
 	if RegisterAddonMessagePrefix then
-		--[[   -- Vanilla dont have limit?
-		if nSize>255 then
+		-- Modern WoW clients have RegisterAddonMessagePrefix and message length limits
+		if nSize > 255 then
 			error("ChatThrottleLib:SendAddonMessage(): message length cannot exceed 255 bytes", 2)
 		end
-		]]
 	else
 		nSize = nSize + strlen(prefix) + 1
-		--[[   -- Vanilla dont have limit?
-		if nSize>255 then
-			error("ChatThrottleLib:SendAddonMessage(): prefix + message length cannot exceed 254 bytes", 2)
-		end
-		]]
+		-- Vanilla WoW clients don't have RegisterAddonMessagePrefix, but if they did have limits,
+		-- it would be prefix + message length that matters
+		-- However, vanilla/TurtleWoW doesn't enforce these limits, so we skip the check
+		-- if nSize > 254 then
+		--     error("ChatThrottleLib:SendAddonMessage(): prefix + message length cannot exceed 254 bytes", 2)
+		-- end
 	end
 
 	nSize = nSize + self.MSG_OVERHEAD;
