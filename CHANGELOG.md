@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [beta0.3.11] - 2025-01-27
+
+### Fixed
+
+- **ChatThrottleLib Error Debugging**: Added debug output to help identify parameter passing issues
+- Fixed typo in ChatThrottleLib error message (ChatMessage -> SendChatMessage)
+- Improved queueName validation to prevent nil values
+
+### Changed
+
+- Updated version numbers across all files (main: 3.8.9, vanilla: 3.8.8)
+
 ## [beta0.3.10] - 2025-01-27
 
 ### Fixed
