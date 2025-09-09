@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [beta0.3.12] - 2025-01-27
+
+### Fixed
+
+- **ChatThrottleLib Error Resolved**: Successfully fixed "callbackFn: expected function, got number" error
+- Ensured queueName parameter is never nil when calling ChatThrottleLib:SendAddonMessage
+- Fixed typo in ChatThrottleLib error message (ChatMessage -> SendChatMessage)
+- Removed debug code after successful resolution
+
+### Changed
+
+- Updated version numbers across all files (main: 3.8.10, vanilla: 3.8.9)
+
 ## [beta0.3.11] - 2025-01-27
 
 ### Fixed
