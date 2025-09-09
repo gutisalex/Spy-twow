@@ -113,26 +113,26 @@ function AceComm:SendCommMessage(prefix, text, distribution, target, prio, callb
 
 	if not forceMultipart and textlen <= maxtextlen then
 		-- fits all in one message
-		CTL:SendAddonMessage(prio, prefix, text, distribution, target, queueName, ctlCallback, textlen)
+		CTL:SendAddonMessage(prio, prefix, text, distribution, target, queueName or "", ctlCallback, textlen)
 	else
 		maxtextlen = maxtextlen - 1	-- 1 extra byte for part indicator in prefix(4.0)/start of message(4.1)
 
 		-- first part
 		local chunk = strsub(text, 1, maxtextlen)
-		CTL:SendAddonMessage(prio, prefix, MSG_MULTI_FIRST..chunk, distribution, target, queueName, ctlCallback, maxtextlen)
+		CTL:SendAddonMessage(prio, prefix, MSG_MULTI_FIRST..chunk, distribution, target, queueName or "", ctlCallback, maxtextlen)
 
 		-- continuation
 		local pos = 1+maxtextlen
 
 		while pos+maxtextlen <= textlen do
 			chunk = strsub(text, pos, pos+maxtextlen-1)
-			CTL:SendAddonMessage(prio, prefix, MSG_MULTI_NEXT..chunk, distribution, target, queueName, ctlCallback, pos+maxtextlen-1)
+			CTL:SendAddonMessage(prio, prefix, MSG_MULTI_NEXT..chunk, distribution, target, queueName or "", ctlCallback, pos+maxtextlen-1)
 			pos = pos + maxtextlen
 		end
 
 		-- final part
 		chunk = strsub(text, pos)
-		CTL:SendAddonMessage(prio, prefix, MSG_MULTI_LAST..chunk, distribution, target, queueName, ctlCallback, textlen)
+		CTL:SendAddonMessage(prio, prefix, MSG_MULTI_LAST..chunk, distribution, target, queueName or "", ctlCallback, textlen)
 	end
 end
 
