@@ -31,16 +31,23 @@ local hooksecurefunc = AceCore.hooksecurefunc
 local wipe = AceCore.wipe
 
 if _G.ChatThrottleLib then
-	if _G.ChatThrottleLib.version >= CTL_VERSION then
-		-- There's already a newer (or same) version loaded. Buh-bye.
-		return
-	elseif not _G.ChatThrottleLib.securelyHooked then
-		print("ChatThrottleLib: Warning: There's an ANCIENT ChatThrottleLib.lua (pre-wow 2.0, <v16) in an addon somewhere. Get the addon updated or copy in a newer ChatThrottleLib.lua (>=v16) in it!")
-		-- ATTEMPT to unhook; this'll behave badly if someone else has hooked...
-		-- ... and if someone has securehooked, they can kiss that goodbye too... >.<
-		_G.SendChatMessage = _G.ChatThrottleLib.ORIG_SendChatMessage
-		if _G.ChatThrottleLib.ORIG_SendAddonMessage then
-			_G.SendAddonMessage = _G.ChatThrottleLib.ORIG_SendAddonMessage
+	-- Check if there's already a version loaded
+	if _G.ChatThrottleLib.version then
+		-- If it's version 14 (Turtle WoW specific version from Aux), use it instead
+		if _G.ChatThrottleLib.version == 14 then
+			-- Aux's Turtle WoW version is already loaded, use that instead
+			return
+		elseif _G.ChatThrottleLib.version >= CTL_VERSION then
+			-- There's already a newer (or same) version loaded. Buh-bye.
+			return
+		elseif not _G.ChatThrottleLib.securelyHooked then
+			print("ChatThrottleLib: Warning: There's an ANCIENT ChatThrottleLib.lua (pre-wow 2.0, <v16) in an addon somewhere. Get the addon updated or copy in a newer ChatThrottleLib.lua (>=v16) in it!")
+			-- ATTEMPT to unhook; this'll behave badly if someone else has hooked...
+			-- ... and if someone has securehooked, they can kiss that goodbye too... >.<
+			_G.SendChatMessage = _G.ChatThrottleLib.ORIG_SendChatMessage
+			if _G.ChatThrottleLib.ORIG_SendAddonMessage then
+				_G.SendAddonMessage = _G.ChatThrottleLib.ORIG_SendAddonMessage
+			end
 		end
 	end
 	_G.ChatThrottleLib.ORIG_SendChatMessage = nil
@@ -66,6 +73,11 @@ ChatThrottleLib.MSG_OVERHEAD = 40		-- Guesstimate overhead for sending a message
 ChatThrottleLib.BURST = 4000				-- WoW's server buffer seems to be about 32KB. 8KB should be safe, but seen disconnects on _some_ servers. Using 4KB now.
 
 ChatThrottleLib.MIN_FPS = 20				-- Reduce output CPS to half (and don't burst) if FPS drops below this value
+
+-- Turtle WoW specific chat line throttling
+-- Turtle seems to allow > 6 lines per second in some situations; but for pure spam throughput, a value of 6 here seems to be the limit.
+-- Due to timing issues, setting this to 5.75 seems to allow the most throughput without any accidental soft bans.
+ChatThrottleLib.TURTLE_MAX_CHAT_LINES_PER_SECOND = 5
 
 
 local setmetatable = setmetatable
@@ -195,6 +207,10 @@ function ChatThrottleLib:Init()
 		self.nTotalSent = 0 -- v5
 	end
 
+	-- Turtle WoW specific initialization
+	if not self.TurtleChatLinesAvailable then
+		self.TurtleChatLinesAvailable = self.TURTLE_MAX_CHAT_LINES_PER_SECOND
+	end
 
 	-- Set up a frame to get OnUpdate events
 	if not self.Frame then
@@ -222,6 +238,26 @@ function ChatThrottleLib:Init()
 		end)
 	end
 	self.nBypass = 0
+end
+
+
+-----------------------------------------------------------------------
+-- Turtle WoW specific chat line throttling functions
+
+function ChatThrottleLib.TurtleSendChat()
+	local self = ChatThrottleLib
+	self.TurtleChatLinesAvailable = self.TurtleChatLinesAvailable - 1
+	-- Showing the frame will start to build back the available buffer and re-hide when max lines are available
+	self.Frame:Show()
+end
+
+function ChatThrottleLib.IsTurtleSendChatReady()
+	local self = ChatThrottleLib
+	if self.TurtleChatLinesAvailable > 1 then
+		return true
+	end
+	-- print("Chat Throttled")
+	return false
 end
 
 
@@ -344,6 +380,14 @@ function ChatThrottleLib.OnUpdate()
 		return
 	end
 	self.OnUpdateDelay = 0
+
+	-- Turtle WoW specific: Regenerate chat lines over time
+	if self.TurtleChatLinesAvailable < self.TURTLE_MAX_CHAT_LINES_PER_SECOND then
+		self.TurtleChatLinesAvailable = self.TurtleChatLinesAvailable + (self.TURTLE_MAX_CHAT_LINES_PER_SECOND * 0.08)
+		if self.TurtleChatLinesAvailable > self.TURTLE_MAX_CHAT_LINES_PER_SECOND then
+			self.TurtleChatLinesAvailable = self.TURTLE_MAX_CHAT_LINES_PER_SECOND
+		end
+	end
 
 	self:UpdateAvail()
 
@@ -520,6 +564,11 @@ end
 -- Get the ball rolling!
 
 ChatThrottleLib:Init()
+
+-- Compatibility check: Ensure the loaded ChatThrottleLib has the methods AceComm-3.0 expects
+if ChatThrottleLib and not ChatThrottleLib.SendAddonMessage then
+	error("ChatThrottleLib: The loaded version does not have SendAddonMessage method required by AceComm-3.0. Please ensure you're using a compatible version.")
+end
 
 --[[ WoWBench debugging snippet
 if(WOWB_VER) then
